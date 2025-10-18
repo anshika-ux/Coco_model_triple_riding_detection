@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "helmet-detection"
+version = "0.1.0"
+description = "YOLOv8 based helmet detection system"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
+dependencies = [
+    "ultralytics>=8.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black",
+    "flake8",
+    "isort",
+]
+
+[project.urls]
+Homepage = "https://github.com/Pratham9823/PrepAI"
+Repository = "https://github.com/Pratham9823/PrepAI.git"
+"Bug Reports" = "https://github.com/Pratham9823/PrepAI/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["datasets*"]
+
+[tool.setuptools.package-data]
+"datasets" = ["**/*.yaml", "**/*.txt", "**/*.jpg", "**/*.png"]
