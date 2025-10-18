@@ -56,14 +56,26 @@ def group_riders_with_vehicles(persons: List[Dict], vehicles: List[Dict],
             
             # Normalized distance relative to vehicle size
             dist = np.linalg.norm(v_center - p_center) / max(v_width, v_height)
-            
-            # Weight vertical alignment more (people are usually above/on the vehicle)
-            vert_dist = abs(p_center[1] - v_center[1]) / v_height
-            horiz_dist = abs(p_center[0] - v_center[0]) / v_width
-            
-            # Check both IoU and weighted distance
+
+            # Horizontal normalized distance
+            horiz_dist = abs(p_center[0] - v_center[0]) / max(v_width, 1.0)
+
+            # Compute IoU
             iou = compute_iou(v_box, p_box)
-            if iou > iou_threshold or (vert_dist < distance_threshold and horiz_dist < distance_threshold * 1.5):
+
+            # Require either a reasonable IoU OR that the person's bottom edge overlaps the vehicle's vertical range
+            p_bottom = p_box[3]
+            v_top = v_box[1]
+            v_bottom = v_box[3]
+
+            # margin allowances (relative to vehicle height)
+            top_margin = 0.05 * v_height    # allow a bit above vehicle top
+            bottom_margin = 0.30 * v_height # allow a bit below vehicle bottom (sitting legs)
+
+            bottom_overlap = (p_bottom >= (v_top - top_margin)) and (p_bottom <= (v_bottom + bottom_margin))
+
+            # Accept candidate if IoU strong or horizontal alignment plus bottom overlap
+            if iou > iou_threshold or (horiz_dist < 1.2 and bottom_overlap):
                 candidates.append((person, dist))
         
         # Sort by distance and take the closest N riders
