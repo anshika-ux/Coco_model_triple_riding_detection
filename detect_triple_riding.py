@@ -10,7 +10,6 @@ from datetime import datetime
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-
 def find_image_files(folder: Path) -> List[Path]:
     exts = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
     return [p for p in sorted(folder.rglob("*")) if p.suffix.lower() in exts]
