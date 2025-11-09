@@ -6,14 +6,14 @@ with open('README.md', encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name="helmet-detection",
+    name="triple-riding-detection",
     version="0.1.0",
-    author="Your Name",
-    author_email="your.email@example.com",
-    description="YOLOv8 based helmet detection system",
+    author="Anshika",
+    author_email="your.email@example.com",  # Update this with your email
+    description="YOLOv8 based triple riding detection system",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/Pratham9823/PrepAI",
+    url="https://github.com/anshika-ux/Coco_model_triple_riding_detection",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
