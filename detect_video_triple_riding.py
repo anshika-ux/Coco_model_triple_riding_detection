@@ -60,8 +60,12 @@ def process_frame_with_model(frame_path, model_path, conf, device, imgsz, max_de
 
     violations = sum(1 for g in vehicle_groups if g["is_violation"])
 
-    if violations > 0:
-        out_path = Path(out_folder) / f"violation_frame_{frame_number:06d}.jpg"
+    # Save annotated frame if there are any detections (vehicles or riders)
+    if len(vehicle_groups) > 0 or len(persons) > 0:
+        if violations > 0:
+            out_path = Path(out_folder) / f"violation_frame_{frame_number:06d}.jpg"
+        else:
+            out_path = Path(out_folder) / f"frame_{frame_number:06d}.jpg"
         annotate_image(str(frame_path), vehicle_groups, out_path,
                        compact_violation=compact_violation,
                        show_confidence=show_confidence,
@@ -156,7 +160,7 @@ def group_riders_with_vehicles(persons: List[Dict], vehicles: List[Dict],
     used_persons = set()  
 
     for vehicle in vehicles:
-        v_box = np.array(vehicle["bbox"])  # [x1,y1,x2,y2]
+        v_box = np.array(vehicle["bbox"]) 
         v_center = np.array([(v_box[0] + v_box[2])/2, (v_box[1] + v_box[3])/2])
         v_width = v_box[2] - v_box[0]
         v_height = v_box[3] - v_box[1]
@@ -532,13 +536,20 @@ def main(args=None):
 
             violations = sum(1 for g in vehicle_groups if g["is_violation"])
 
-            if violations > 0:
-                out_path = out_folder / f"violation_frame_{frame_number:06d}.jpg"
+            # Save annotated frame if there are any detections (vehicles or riders)
+            if len(vehicle_groups) > 0 or len(persons) > 0:
+                if violations > 0:
+                    out_path = out_folder / f"violation_frame_{frame_number:06d}.jpg"
+                else:
+                    out_path = out_folder / f"frame_{frame_number:06d}.jpg"
                 annotate_image(str(frame_path), vehicle_groups, out_path,
                                compact_violation=args.compact_violation,
                                show_confidence=args.show_confidence,
                                show_arrow=args.show_arrow,
                                violation_only_box=args.violation_only_box)
+                if not args.quiet:
+                    status = "VIOLATION" if violations > 0 else "COMPLIANT"
+                    print(f"  Saved frame {frame_number}: {len(vehicle_groups)} vehicles, {len(persons)} riders - {status}")
 
             if not args.quiet:
                 print_detection_report(frame_path.name, vehicle_groups)
@@ -615,26 +626,28 @@ if __name__ == "__main__":
     args = Args()
     main(args)
 
-    print("\nTesting with local video file...")
+    print("\nProcessing local video file with optimized detection settings...")
     class TestArgs:
         def __init__(self):
             self.video = None  # No dataset for local file
             self.file = "datasets/triple_riding/video/test.mp4"
             self.weights = "yolov8n.pt"
-            self.out = "output video test"
-            self.conf = 0.2  # Moderate confidence for accurate detection
+            self.out = "outputs/triple_riding/video"
+            # OPTIMIZED SETTINGS FOR LOCAL VIDEO (matching image detection)
+            self.conf = 0.3  # Better confidence threshold for cleaner detections
             self.imgsz = 640
             self.max_det = 300
-            self.iou_thresh = 0.05  # Moderate IoU threshold
-            self.dist_thresh = 0.5  # Moderate distance threshold
-            self.frame_interval = 60  # Less frequent frames for focused detection
-            self.compact_violation = False
-            self.show_confidence = False
-            self.show_arrow = False
+            self.iou_thresh = 0.1  # Better IoU threshold for accurate grouping
+            self.dist_thresh = 0.75  # Better distance threshold for rider association
+            self.frame_interval = 30  # Process more frames for better coverage
+            self.compact_violation = True  # Draw compact violation boxes
+            self.show_confidence = True  # Show confidence scores
+            self.show_arrow = True  # Show direction arrows
             self.device = None
             self.quiet = quiet
             self.no_color = False
             self.violation_only_box = False
+            # KEEP MONGODB FOR TIMESTAMP REPORTING
             self.mongodb_uri = "mongodb://localhost:27017/"
             self.db_name = "triple_riding_db"
             self.collection_name = "video_detections"
